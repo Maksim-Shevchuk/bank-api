@@ -1,32 +1,26 @@
 package by.vsu.bank.model.user;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.FetchType;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.OneToOne;
-import jakarta.persistence.Table;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.Getter;
+import lombok.*;
+import org.hibernate.Hibernate;
 
 import java.util.Date;
+import java.util.Objects;
 
+@Getter
+@Setter
+@ToString
+@RequiredArgsConstructor
 @Entity
 @Table(name = "users_info")
-@Data
 public class UserInfo {
 
+    @JsonIgnore
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-
-    @OneToOne(fetch = FetchType.LAZY)
-    private User user;
 
     @Column(name = "phone")
     @Pattern(regexp = "\\+\\d{3}\\(\\d{2}\\)\\d{3}\\-\\d{2}\\-\\d{2}", message = "incorrect phone number format")
@@ -38,20 +32,37 @@ public class UserInfo {
 
     @Column(name = "first_name", length = 50)
     @NotBlank
-    private String first_name;
+    private String firstName;
 
-    @Column(name = "birthday")
-    private Date date;
+    @Column(name = "date_of_birth")
+    private Date dateOfBirth;
 
+    @Enumerated(EnumType.STRING)
     @Column(name = "sex")
     private Sex sex;
 
-    @Getter
-    @AllArgsConstructor
+    @JsonIgnore
+    @OneToOne(fetch = FetchType.LAZY, optional = false)
+    @MapsId
+    @JoinColumn(name = "id", nullable = false)
+    @ToString.Exclude
+    private User user;
+
     private enum Sex {
-        MAlE("male"),
-        FEMALE("female"),
-        OTHER("other");
-        private String value;
+        MALE,
+        FEMALE
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || Hibernate.getClass(this) != Hibernate.getClass(o)) return false;
+        UserInfo userInfo = (UserInfo) o;
+        return id != null && Objects.equals(id, userInfo.id);
+    }
+
+    @Override
+    public int hashCode() {
+        return getClass().hashCode();
     }
 }
